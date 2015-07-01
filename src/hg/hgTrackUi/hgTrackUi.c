@@ -2803,21 +2803,27 @@ speciesList = halGetPossibleCoalescenceLimits(handle, otherSpecies,
 int count = 0;
 for(sp=speciesList; sp; sp = sp->next)
     count++;
-
 char codeVarName[1024];
-safef(codeVarName, sizeof codeVarName, "%s.coalescent", tdb->track);
-char **ancestors;
-AllocArray(ancestors, count);
-count = 0;
-for(sp=speciesList; sp; sp = sp->next)
+if (count > 0)
     {
-    ancestors[count] = sp->name;
-    count++;
+    safef(codeVarName, sizeof codeVarName, "%s.coalescent", tdb->track);
+    char **ancestors;
+    AllocArray(ancestors, count);
+    count = 0;
+    for(sp=speciesList; sp; sp = sp->next)
+        {
+        ancestors[count] = sp->name;
+        count++;
+        }
+    char *coalescent = cartOptionalString(cart, codeVarName);
+    printf("<B>Set Coalescent Ancestor to:</B>");
+    cgiMakeDropListFull(codeVarName, ancestors, ancestors,
+        count, coalescent, NULL);
     }
-char *coalescent = cartOptionalString(cart, codeVarName);
-printf("<B>Set Coalescent Ancestor to:</B>");
-cgiMakeDropListFull(codeVarName, ancestors, ancestors,
-    count, coalescent, NULL);
+printf("<BR><B>Turn off Level Of Detail approximations:</B>");
+safef(codeVarName, sizeof codeVarName, "%s.useLod0", tdb->track);
+boolean useLod0 = cartUsualBoolean(cart, codeVarName, false);
+cgiMakeCheckBox(codeVarName, useLod0);
 }
 #endif
 
