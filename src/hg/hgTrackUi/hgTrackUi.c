@@ -2820,7 +2820,7 @@ if (count > 0)
     cgiMakeDropListFull(codeVarName, ancestors, ancestors,
         count, coalescent, NULL);
     }
-printf("<BR><B>Turn off Level Of Detail approximations:</B>");
+printf("<BR><B>Turn off Level of Detail approximations:</B>");
 safef(codeVarName, sizeof codeVarName, "%s.useLod0", tdb->track);
 boolean useLod0 = cartUsualBoolean(cart, codeVarName, false);
 cgiMakeCheckBox(codeVarName, useLod0);

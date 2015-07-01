@@ -28,6 +28,10 @@
 
 // this is the number of pixels used by the target self-align bar
 #define DUP_LINE_HEIGHT	4
+// this is the height of the font used to display insertion sizes
+#define INSERT_TEXT_HEIGHT 10
+// width of box used to display insertion sizes
+#define INSERT_TEXT_WIDTH 20
 
 struct snakeFeature
     {
@@ -668,7 +672,12 @@ if (vis == tvDense)
 if (vis == tvSquish)
     return tg->lineHeight/2;
 
-int height = DUP_LINE_HEIGHT; 
+int height = DUP_LINE_HEIGHT;
+boolean showInsertionSize = cartOrTdbBoolean(cart, tg->tdb,
+                                             SNAKE_SHOW_INSERTION_SIZE,
+                                             SNAKE_DEFAULT_SHOW_INSERTION_SIZE);
+if (showInsertionSize)
+    height += INSERT_TEXT_HEIGHT;
 struct slList *item = tg->items;
 
 item = tg->items;
@@ -774,6 +783,9 @@ static void snakeDrawAt(struct track *tg, void *item,
 {
 unsigned showSnpWidth = cartOrTdbInt(cart, tg->tdb, 
     SNAKE_SHOW_SNP_WIDTH, SNAKE_DEFAULT_SHOW_SNP_WIDTH);
+boolean showInsertionSize = cartOrTdbBoolean(cart, tg->tdb,
+                                             SNAKE_SHOW_INSERTION_SIZE,
+                                             SNAKE_DEFAULT_SHOW_INSERTION_SIZE);
 struct linkedFeatures  *lf = (struct linkedFeatures *)item;
 
 
@@ -1100,17 +1112,29 @@ for (sf =  (struct snakeFeature *)lf->components; sf != NULL; lastQEnd = qe, pre
 	    {
 	    if ((sf->orientation == 1) && (qs != lastQEnd) && (lastE == s))
 		{
+                // query insertion with no reference gap, + orientation
 		hvGfxLine(hvg, sx, y2 - lineHeight/2 , sx, y2 + lineHeight/2, MG_ORANGE);
 		safef(buffer, sizeof buffer, "%dbp", qs - lastQEnd);
 		boundMapBox(hvg, s, e, sx, y2 - lineHeight/2, 1, lineHeight, tg->track,
 				    "foo", buffer, NULL, TRUE, NULL);
+                if (showInsertionSize)
+                    hvGfxTextCentered(hvg, sx - INSERT_TEXT_WIDTH/2,
+                                      y2 + lineHeight/2, INSERT_TEXT_WIDTH,
+                                      INSERT_TEXT_HEIGHT, MG_ORANGE, font,
+                                      buffer);
 		}
 	    else if ((sf->orientation == -1) && (qs != lastQEnd) && (lastS == e))
 		{
+                // query insertion with no reference gap, - orientation
 		hvGfxLine(hvg, ex, y2 - lineHeight/2 , ex, y2 + lineHeight/2, MG_ORANGE);
 		safef(buffer, sizeof buffer, "%dbp", qs - lastQEnd);
 		boundMapBox(hvg, s, e, ex, y2 - lineHeight/2, 1, lineHeight, tg->track,
 				    "foo", buffer, NULL, TRUE, NULL);
+                if (showInsertionSize)
+                    hvGfxTextCentered(hvg, ex - INSERT_TEXT_WIDTH/2,
+                                      y2 + lineHeight/2, INSERT_TEXT_WIDTH,
+                                      INSERT_TEXT_HEIGHT, MG_ORANGE, font,
+                                      buffer);
 		}
 	    }
 
@@ -1122,23 +1146,46 @@ for (sf =  (struct snakeFeature *)lf->components; sf != NULL; lastQEnd = qe, pre
 	    {
 	    if (lastLevel == sf->level)
 		{
-		safef(buffer, sizeof buffer, "%dbp", qs - lastQEnd);
 		if (sf->orientation == -1)
 		    {
+                    // Deletion in ref between two blocks on same
+                    // level, - orientation
+                    safef(buffer, sizeof buffer, "%dbp (%dbp in ref)",
+                          qs - lastQEnd, lastS - e);
 		    if (lastX != ex)
 			{
 			hvGfxLine(hvg, ex, y1, lastX, y2, color);
 			boundMapBox(hvg, s, e, ex, y1, lastX-ex, 1, tg->track,
 				"", buffer, NULL, TRUE, NULL);
+                        if (lastQEnd != qs && winBaseCount < showSnpWidth
+                            && showInsertionSize)
+                            {
+                            safef(buffer, sizeof buffer, "%dbp", qs - lastQEnd);
+                            hvGfxTextCentered(hvg, ex, y2 + lineHeight/2,
+                                              lastX-ex, INSERT_TEXT_HEIGHT,
+                                              MG_ORANGE, font, buffer);
+                            }
 			}
 		    }
 		else
 		    {
+                    // Deletion in ref between two blocks on same
+                    // level, + orientation
+                    safef(buffer, sizeof buffer, "%dbp (%dbp in ref)",
+                          qs - lastQEnd, s - lastE);
 		    if (lastX != sx)
 			{
 			hvGfxLine(hvg, lastX, y1, sx, y2, color);
 			boundMapBox(hvg, s, e, lastX, y1, sx-lastX, 1, tg->track,
 				"", buffer, NULL, TRUE, NULL);
+                        if (lastQEnd != qs && winBaseCount < showSnpWidth
+                            && showInsertionSize)
+                            {
+                            safef(buffer, sizeof buffer, "%dbp", qs - lastQEnd);
+                            hvGfxTextCentered(hvg, lastX, y2 + lineHeight/2,
+                                              sx-lastX, INSERT_TEXT_HEIGHT,
+                                              MG_ORANGE, font, buffer);
+                            }
 			}
 		    }
 		}
@@ -1150,6 +1197,15 @@ for (sf =  (struct snakeFeature *)lf->components; sf != NULL; lastQEnd = qe, pre
 		safef(buffer, sizeof buffer, "%d-%d %dbp gap",prevSf->qStart,prevSf->qEnd, qs - lastQEnd);
 		boundMapBox(hvg, s, e, sx, y2 - lineHeight - lineHeight/3, 2, lineHeight + lineHeight/3, tg->track,
 	                    "", buffer, NULL, TRUE, NULL);
+                if (lastQEnd != qs && winBaseCount < showSnpWidth
+                    && showInsertionSize)
+                    {
+                    safef(buffer, sizeof buffer, "%dbp", qs - lastQEnd);
+                    hvGfxTextCentered(hvg, sx - INSERT_TEXT_WIDTH/2,
+                                      y2 + lineHeight/2, INSERT_TEXT_WIDTH,
+                                      INSERT_TEXT_HEIGHT, MG_ORANGE, font,
+                                      buffer);
+                    }
 
 		}
 	    else
@@ -1162,6 +1218,15 @@ for (sf =  (struct snakeFeature *)lf->components; sf != NULL; lastQEnd = qe, pre
 		    hvGfxLine(hvg, ex, y2, ex, y2 + lineHeight , color);
 		    boundMapBox(hvg, s, e, ex-1, y2, 2, lineHeight , tg->track,
 				"", buffer, NULL, TRUE, NULL);
+                    if (lastQEnd != qs && winBaseCount < showSnpWidth
+                        && showInsertionSize)
+                        {
+                        safef(buffer, sizeof buffer, "%dbp", qs - lastQEnd);
+                        hvGfxTextCentered(hvg, ex - INSERT_TEXT_WIDTH/2,
+                                          y2 + lineHeight, INSERT_TEXT_WIDTH,
+                                          INSERT_TEXT_HEIGHT, MG_ORANGE,
+                                          font, buffer);
+                        }
 		    }
 		else
 		    {
@@ -1169,7 +1234,15 @@ for (sf =  (struct snakeFeature *)lf->components; sf != NULL; lastQEnd = qe, pre
 		    hvGfxLine(hvg, sx, y2, sx, y2 + lineHeight , color);
 		    boundMapBox(hvg, s, e, sx-1, y2, 2, lineHeight , tg->track,
 				"", buffer, NULL, TRUE, NULL);
-
+                    if (lastQEnd != qs && winBaseCount < showSnpWidth
+                        && showInsertionSize)
+                        {
+                        safef(buffer, sizeof buffer, "%dbp", qs - lastQEnd);
+                        hvGfxTextCentered(hvg, sx - INSERT_TEXT_WIDTH/2,
+                                          y2 + lineHeight, INSERT_TEXT_WIDTH,
+                                          INSERT_TEXT_HEIGHT, MG_ORANGE,
+                                          font, buffer);
+                        }
 		    }
 		}
 	    }

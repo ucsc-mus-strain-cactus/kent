@@ -12,6 +12,8 @@
 #define SNAKE_SHOW_SNP_WIDTH "showSnpWidth"
 #define SNAKE_DEFAULT_SHOW_SNP_WIDTH 50000
 
+#define SNAKE_SHOW_INSERTION_SIZE "showInsertionSize"
+#define SNAKE_DEFAULT_SHOW_INSERTION_SIZE true
 
 #define   SNAKE_COLOR_BY_STRAND_LABEL     "by strand"
 #define   SNAKE_COLOR_BY_CHROM_LABEL      "by chromosome"

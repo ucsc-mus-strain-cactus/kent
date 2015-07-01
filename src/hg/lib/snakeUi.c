@@ -58,11 +58,24 @@ cgiMakeDropListFull(varName, colorByOptionLabels,
 puts("<BR>");
 }
 
+static void showInsertionsCfg(struct cart *cart, struct trackDb *tdb,
+                              char *name, boolean parentLevel) {
+printf("<BR><B>Show size of inserted sequence in other genome:</B>\n");
+
+char codeVarName[1024];
+safef(codeVarName, sizeof codeVarName, "%s." SNAKE_SHOW_INSERTION_SIZE, name);
+boolean showInsertionSize = cartUsualBoolean(cart, codeVarName,
+                                             SNAKE_DEFAULT_SHOW_INSERTION_SIZE);
+cgiMakeCheckBox(codeVarName, showInsertionSize);
+puts("<BR>");
+}
+
 void snakeCfgUi(struct cart *cart, struct trackDb *tdb, char *name, char *title, boolean boxed)
 {
 boolean parentLevel = isNameAtParentLevel(tdb, name);
 
 showSnpWidthCfg(cart, tdb, name, parentLevel);
 colorByCfg(cart, tdb, name, parentLevel);
+showInsertionsCfg(cart, tdb, name, parentLevel);
 }
 
