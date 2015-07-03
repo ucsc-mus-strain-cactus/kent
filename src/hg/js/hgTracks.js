@@ -3214,7 +3214,7 @@ var imageV2 = {
                 // this updates src in img_left_ID, img_center_ID and img_data_ID
                 // and map in map_data_ID
                 var id = this.id;
-                if (imageV2.updateImgForId(response, id, false)) {
+                if (imageV2.updateImgForId($(response), id, false)) {
                     imageV2.afterReload(id);
                 } else {
                     warn("Couldn't parse out new image for id: " + id);
