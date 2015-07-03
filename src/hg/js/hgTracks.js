@@ -2999,17 +2999,17 @@ var imageV2 = {
         }
     },
 
-    updateImgForId: function (html, id, fullImageReload, newJsonRec)
+    updateImgForId: function (parsedHtml, id, fullImageReload, newJsonRec)
     {   // update row in imgTbl for given id.
         // return true if we successfully pull slice for id and update it in imgTrack.
-        var newTr = $(html).find("tr[id='tr_" + id + "']");
+        var newTr = parsedHtml.find("tr[id='tr_" + id + "']");
         if (newTr.length > 0) {
             var tr = $(document.getElementById("tr_" + id));
             if (tr.length > 0) {
                 $(tr).html(newTr.children());
 
                 // Need to update tr class list too
-                var classes = $(html).find("tr[id='tr_"+ id + "']")[0].className;
+                var classes = parsedHtml.find("tr[id='tr_"+ id + "']")[0].className;
                 if (classes && classes.length > 0) {
                     $(tr).removeClass();
                     $(tr).addClass(classes);
@@ -3055,6 +3055,9 @@ var imageV2 = {
         // We update rows one at a time 
         // (b/c updating the whole imgTbl at one time doesn't work in IE).
         var id;
+        // The response is very large (50-200Kb), so parse it once
+        // instead of twice for every track (!).
+        var parsedHtml = $(response);
         for (id in newJson.trackDb) {
             var newJsonRec = newJson.trackDb[id];
             var oldJsonRec = oldJson.trackDb[id];
@@ -3065,14 +3068,14 @@ var imageV2 = {
                 continue;
             if (oldJsonRec &&  oldJsonRec.visibility !== 0 && $('tr#tr_' + id).length === 1) {
                 // New track replacing old:
-                if (!imageV2.updateImgForId(response, id, true, newJsonRec))
+                if (!imageV2.updateImgForId(parsedHtml, id, true, newJsonRec))
                     warn("Couldn't parse out new image for id: " + id);
             } else { //if (!oldJsonRec || oldJsonRec.visibility === 0)
                 // New track seen for the first time
                 if (imageV2.backSupport) {
                     $(imgTbl).append("<tr id='tr_" + id + "' abbr='0'" + // abbr gets filled in
                                         " class='imgOrd trDraggable'></tr>");
-                    if (!imageV2.updateImgForId(response, id, true, newJsonRec))
+                    if (!imageV2.updateImgForId(parsedHtml, id, true, newJsonRec))
                         warn("Couldn't insert new image for id: " + id);
                 }
             }
