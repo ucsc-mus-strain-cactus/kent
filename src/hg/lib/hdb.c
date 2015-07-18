@@ -3608,7 +3608,8 @@ if (bigDataUrl != NULL)
         if (hasProtocol(bigDataUrlLocal))
             exists = udcExists(bigDataUrlLocal);
         else
-            exists = fileExists(bigDataUrlLocal);
+            // HACK
+            return TRUE;
         freeMem(bigDataUrlLocal);
         return exists;
         }
